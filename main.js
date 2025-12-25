@@ -125,7 +125,7 @@ function init() {
 function createPad(color, index) {
   const group = new THREE.Group();
 
-  const topGeo = new THREE.CylinderGeometry(1.4, 1.4, 0.6, 40, 1, false);
+  const { geometry: topGeo, capRadius } = createRoundedCylinder(1.4, 0.6, 1.5, 48);
   const topMat = new THREE.MeshPhysicalMaterial({
     color,
     emissive: color.clone().multiplyScalar(0.15),
@@ -138,6 +138,13 @@ function createPad(color, index) {
   const top = new THREE.Mesh(topGeo, topMat);
   top.position.y = 0.4;
   group.add(top);
+
+  const capGeo = new THREE.CircleGeometry(capRadius, 48);
+  const capMat = topMat.clone();
+  const cap = new THREE.Mesh(capGeo, capMat);
+  cap.rotation.x = -Math.PI / 2;
+  cap.position.y = 0.4 + 0.3; // top half-height
+  group.add(cap);
 
   const glowGeo = new THREE.TorusGeometry(1.05, 0.12, 24, 80);
   const glowMat = new THREE.MeshBasicMaterial({
@@ -171,6 +178,22 @@ function createPad(color, index) {
   group.scale.set(1, 1, 1);
   group.rotation.y = (Math.PI / 18) * index;
   return group;
+}
+
+function createRoundedCylinder(radius = 1.4, height = 0.6, bevel = 1.5, segments = 32) {
+  const half = height / 2;
+  const b = Math.min(bevel, half * 0.9);
+  const pts = [];
+  // bottom stays flat; only round the top edge
+  pts.push(new THREE.Vector2(radius, -half));
+  pts.push(new THREE.Vector2(radius, half - b));
+  pts.push(new THREE.Vector2(radius - b * 0.25, half - b * 0.45));
+  pts.push(new THREE.Vector2(radius - b * 0.6, half - b * 0.2));
+  pts.push(new THREE.Vector2(radius - b, half));
+  return {
+    geometry: new THREE.LatheGeometry(pts, segments),
+    capRadius: Math.max(radius - b, radius * 0.45),
+  };
 }
 
 function addParticles() {
