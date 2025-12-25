@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simon 3D</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="ui">
+    <div class="branding">SIMON<span>3D</span></div>
+    <div class="status card">
+      <button id="start">Start</button>
+      <div id="round">Runde 0</div>
+      <div id="hint">Bereit?</div>
+    </div>
+    <div class="right">
+      <div class="player card">
+        <label for="playerName">Name</label>
+        <input id="playerName" type="text" placeholder="Dein Name" autocomplete="off">
+        <div class="best">Best: <span id="bestScore">0</span></div>
+      </div>
+      <div class="scores card">
+        <div class="title">Highscores</div>
+        <ul id="scores"></ul>
+      </div>
+    </div>
+  </div>
+  <canvas id="scene"></canvas>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
