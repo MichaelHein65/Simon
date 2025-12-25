@@ -17,6 +17,8 @@ renderer.toneMappingExposure = 1.1;
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x0c1224, 0.06);
 
+const boardGroup = new THREE.Group();
+scene.add(boardGroup);
 const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 200);
 camera.position.set(0, 7.2, 11);
 
@@ -24,7 +26,7 @@ const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 
 const padGroup = new THREE.Group();
-scene.add(padGroup);
+boardGroup.add(padGroup);
 
 const colors = [
   new THREE.Color("#69f0ff"),
@@ -42,6 +44,9 @@ let currentRound = 0;
 const SCORE_KEY = "simon3d_scores_v1";
 const NAME_KEY = "simon3d_player_name_v1";
 let scores = loadScores();
+let spinSpeed = 0.22;
+let spinTarget = 0.22;
+let spinAngle = 0;
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 const masterGain = audioCtx.createGain();
@@ -83,7 +88,7 @@ function init() {
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = -0.01;
   floor.receiveShadow = true;
-  scene.add(floor);
+  boardGroup.add(floor);
 
   const positions = [
     [-2, 2],
@@ -219,6 +224,7 @@ function onPointerDown(event) {
 function startGame() {
   sequence.length = 0;
   currentRound = 0;
+  startBtn.textContent = "Restart";
   addStep();
   playSequence();
 }
@@ -269,12 +275,12 @@ function pressPad(idx) {
 
 function fail() {
   acceptingInput = false;
-  hintLabel.textContent = "Fehler! Neustart...";
+  hintLabel.textContent = "Fehler! Drücke Start für Neustart.";
   const score = Math.max(currentRound - 1, 0);
   if (score > 0) recordScore(score);
   flashAll();
   failTone();
-  setTimeout(startGame, 900);
+  startBtn.textContent = "Start";
 }
 
 function flashAll() {
@@ -313,7 +319,8 @@ function sleep(ms) {
 
 function animate() {
   requestAnimationFrame(animate);
-  const t = clock.getElapsedTime();
+  const dt = clock.getDelta();
+  const t = clock.elapsedTime;
 
   const camR = 9.8;
   camera.position.x = Math.sin(t * 0.25) * camR * 0.55;
@@ -321,7 +328,16 @@ function animate() {
   camera.position.y = 6.7 + Math.sin(t * 0.1) * 0.2;
   camera.lookAt(0, 0.8, 0);
 
-  padGroup.rotation.y = Math.sin(t * 0.2) * 0.06;
+  if (Math.random() < 0.006) {
+    spinTarget = (0.18 + Math.random() * 0.45) * (Math.random() > 0.5 ? 1 : -1);
+  }
+  spinSpeed += (spinTarget - spinSpeed) * 0.02;
+  spinAngle += spinSpeed * dt;
+  boardGroup.rotation.y = spinAngle + Math.sin(t * 0.35) * 0.015;
+  boardGroup.rotation.x = Math.sin(t * 0.6) * 0.02;
+  boardGroup.rotation.z = Math.sin(t * 0.5 + 1.7) * 0.02;
+
+  padGroup.rotation.y = Math.sin(t * 0.2) * 0.03;
 
   pads.forEach((pad) => updateFlash(pad, t));
 
